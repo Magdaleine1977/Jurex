@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OPÉRATION JUREX — Escape Game Éco-Droit</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #12151A; --card: #1E2329; --card2: #252B34;
+  --gold: #D4AF37; --gold-pale: #F5E6A3;
+  --teal: #1ABC9C; --teal-dark: #148F77;
+  --red: #C0392B; --blue: #3498DB; --purple: #9B59B6; --orange: #E67E22;
+  --grey: #7F8C8D; --light: #BDC3C7; --white: #FFFFFF;
+  --success: #27AE60; --danger: #E74C3C;
+  --radius: 10px;
+}
+body { background: var(--bg); color: var(--light); font-family: 'Segoe UI', system-ui, sans-serif; font-size: 15px; line-height: 1.6; min-height: 100vh; }
+.topbar { background: var(--gold); color: #1a1200; text-align: center; font-size: 11px; font-weight: 700; letter-spacing: 3px; padding: 5px; position: fixed; top: 0; left: 0; right: 0; z-index: 100; }
+.app { max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
+
+/* INTRO */
+#screen-intro { text-align: center; padding: 60px 20px 40px; }
+.cover-badge { width: 100px; height: 100px; border-radius: 50%; background: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 48px; margin: 40px auto 24px; border: 3px solid #4a3800; }
+.cover-op { font-size: 12px; letter-spacing: 6px; color: var(--grey); margin-bottom: 4px; }
+.cover-title { font-size: 56px; font-weight: 900; color: var(--gold); font-family: Impact, 'Arial Black', sans-serif; letter-spacing: 4px; }
+.cover-sub { font-size: 14px; letter-spacing: 4px; color: var(--white); margin: 8px 0 24px; }
+.cover-desc { font-size: 14px; color: var(--grey); margin-bottom: 32px; }
+.start-form { background: var(--card); border: 1px solid #333; border-radius: var(--radius); padding: 24px; max-width: 420px; margin: 0 auto 32px; text-align: left; }
+.start-form label { display: block; font-size: 12px; color: var(--grey); margin-bottom: 6px; letter-spacing: 1px; text-transform: uppercase; }
+.start-form input { width: 100%; padding: 10px 14px; background: #0d1117; border: 1px solid #333; border-radius: 6px; color: var(--white); font-size: 15px; margin-bottom: 16px; }
+.start-form input:focus { outline: none; border-color: var(--teal); }
+.btn-primary { display: inline-block; padding: 13px 32px; background: var(--gold); color: #1a1200; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; letter-spacing: 1px; transition: opacity .15s; }
+.btn-primary:hover { opacity: .85; }
+
+/* PROGRESS */
+.progress-bar { display: flex; gap: 6px; margin-bottom: 24px; }
+.prog-step { flex: 1; height: 4px; border-radius: 2px; background: #2a2f38; transition: background .4s; }
+.prog-step.done { background: var(--teal); }
+.prog-step.active { background: var(--gold); }
+
+/* ENIGME */
+.enigme-header { border-radius: var(--radius) var(--radius) 0 0; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; }
+.enigme-header h2 { font-size: 17px; font-weight: 700; color: var(--white); }
+.doc-card { background: var(--card2); border-left: 3px solid var(--gold); border-radius: 6px; padding: 16px 18px; margin: 16px 0; font-size: 13.5px; line-height: 1.8; }
+.doc-title { font-size: 11px; letter-spacing: 2px; color: var(--gold); text-transform: uppercase; margin-bottom: 12px; font-weight: 700; }
+.doc-row { display: flex; gap: 8px; margin-bottom: 2px; }
+.doc-row .lbl { color: var(--grey); min-width: 170px; font-size: 13px; }
+.doc-row .val { color: var(--white); font-size: 13px; }
+.doc-row .val.rouge { color: var(--danger); font-weight: 600; }
+
+/* QCM */
+.qcm-block { background: var(--card); border: 1px solid #2a2f38; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+.qcm-question { font-size: 14px; color: var(--white); margin-bottom: 12px; font-weight: 500; }
+.qcm-options { display: flex; flex-direction: column; gap: 8px; }
+.qcm-opt { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; background: #0d1117; border: 1px solid #2a2f38; border-radius: 6px; cursor: pointer; transition: border-color .15s; font-size: 14px; color: var(--light); }
+.qcm-opt:hover { border-color: #444; }
+.qcm-opt input[type=radio] { margin-top: 2px; accent-color: var(--teal); flex-shrink: 0; }
+.qcm-opt.correct { border-color: var(--success) !important; background: #0a1f0a; color: #7fdf7f; }
+.qcm-opt.wrong { border-color: var(--danger) !important; background: #1f0a0a; color: #df7f7f; }
+.qcm-opt.reveal-correct { border-color: var(--success) !important; background: #0a1f0a; color: #7fdf7f; }
+
+/* BOUTONS */
+.btn-check { width: 100%; padding: 13px; background: var(--teal); color: #0a2e26; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; transition: background .15s; }
+.btn-check:hover { background: var(--teal-dark); }
+.btn-check:disabled { opacity: .5; cursor: not-allowed; }
+
+/* FEEDBACK */
+.feedback-zone { background: var(--card2); border-radius: var(--radius); padding: 18px 20px; margin-top: 16px; border-left: 4px solid var(--teal); display: none; }
+.feedback-zone.visible { display: block; }
+.feedback-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.feedback-icon { font-size: 22px; }
+.feedback-header h3 { font-size: 14px; font-weight: 700; color: var(--white); }
+.feedback-body { font-size: 14px; line-height: 1.85; color: var(--light); }
+.fb-line { margin-bottom: 10px; padding-left: 16px; position: relative; }
+.fb-line::before { content: "→"; position: absolute; left: 0; color: var(--teal); }
+.fb-line.wrong::before { color: var(--danger); content: "✗"; }
+.fb-line.correct::before { color: var(--success); content: "✓"; }
+.fb-score { font-size: 18px; font-weight: 700; color: var(--white); margin-bottom: 14px; }
+.fb-score span { color: var(--teal); }
+
+/* CODE RÉVÉLÉ */
+.code-reveal { background: #0a1a0a; border: 2px solid var(--teal); border-radius: var(--radius); padding: 18px 20px; margin-top: 16px; text-align: center; display: none; }
+.code-reveal.visible { display: block; }
+.code-label { font-size: 11px; letter-spacing: 3px; color: var(--grey); text-transform: uppercase; margin-bottom: 6px; }
+.code-value { font-size: 52px; font-weight: 900; color: var(--teal); font-family: 'Courier New', monospace; }
+.code-hint { font-size: 12px; color: var(--grey); margin-top: 6px; }
+
+.btn-next { width: 100%; padding: 13px; background: var(--gold); color: #1a1200; border: none; border-radius: var(--radius); font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 16px; display: none; transition: opacity .15s; }
+.btn-next:hover { opacity: .85; }
+.btn-next.visible { display: block; }
+
+/* INDICE */
+.hint-btn { background: none; border: 1px solid #333; border-radius: 6px; color: var(--grey); font-size: 12px; padding: 5px 12px; cursor: pointer; float: right; }
+.hint-btn:hover { border-color: var(--gold); color: var(--gold-pale); }
+.hint-box { background: #1a1800; border: 1px solid #3a3200; border-radius: 6px; padding: 12px 14px; margin-top: 10px; font-size: 13px; color: var(--gold-pale); display: none; line-height: 1.7; }
+
+/* VICTOIRE */
+#screen-victory { text-align: center; padding: 40px 20px; display: none; }
+.victory-title { font-size: 40px; font-weight: 900; color: var(--gold); font-family: Impact, sans-serif; margin: 16px 0 8px; }
+.victory-sub { font-size: 16px; color: var(--white); margin-bottom: 32px; }
+.coffre-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin: 24px 0; }
+.coffre-cell { background: var(--card); border-radius: 8px; padding: 12px 6px; text-align: center; }
+.coffre-cell .c-label { font-size: 10px; color: var(--grey); letter-spacing: 1px; margin-bottom: 6px; }
+.coffre-cell .c-val { font-size: 28px; font-weight: 900; font-family: 'Courier New', monospace; }
+.final-code { background: #0a1a0a; border: 2px solid var(--gold); border-radius: var(--radius); padding: 20px; margin: 16px 0 24px; }
+.final-code .fc-label { font-size: 12px; color: var(--grey); letter-spacing: 3px; margin-bottom: 8px; }
+.final-code .fc-val { font-size: 36px; font-weight: 900; color: var(--gold); font-family: 'Courier New', monospace; letter-spacing: 8px; }
+.infractions { background: var(--card2); border-left: 3px solid var(--danger); border-radius: 6px; padding: 16px 18px; text-align: left; margin-bottom: 24px; }
+.infractions h4 { font-size: 12px; color: var(--danger); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+.infraction-item { font-size: 13.5px; color: var(--light); margin-bottom: 8px; display: flex; gap: 8px; }
+.infraction-num { color: var(--danger); font-weight: 700; flex-shrink: 0; }
+.btn-restart { padding: 12px 28px; background: transparent; border: 1px solid var(--gold); border-radius: var(--radius); color: var(--gold); font-size: 14px; font-weight: 600; cursor: pointer; transition: background .15s; }
+.btn-restart:hover { background: rgba(212,175,55,.1); }
+
+/* SCORE FINAL */
+.score-badge { display: inline-block; background: var(--card2); border: 2px solid var(--gold); border-radius: 50px; padding: 10px 28px; font-size: 20px; font-weight: 700; color: var(--gold); margin-bottom: 20px; }
+
+@media (max-width: 540px) {
+  .coffre-grid { grid-template-columns: repeat(3, 1fr); }
+  .cover-title { font-size: 38px; }
+  .doc-row .lbl { min-width: 130px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">CAP OPÉRATEUR LOGISTIQUE &nbsp;·&nbsp; ÉCONOMIE-DROIT &nbsp;·&nbsp; ESCAPE GAME</div>
+
+<div class="app" style="padding-top:36px">
+
+  <!-- INTRO -->
+  <div id="screen-intro">
+    <div class="cover-badge">🕵️</div>
+    <div class="cover-op">OPÉRATION</div>
+    <div class="cover-title">JUREX</div>
+    <div class="cover-sub">L'ENQUÊTE ÉCO-DROIT</div>
+    <div class="cover-desc">5 énigmes · 5 codes · 1 coffre à déverrouiller · ~1 heure<br>
+      <span style="font-size:12px;color:var(--teal)">✓ Fonctionne sans internet · Correction automatique intégrée</span>
+    </div>
+    <div class="start-form">
+      <label>Ton prénom</label>
+      <input type="text" id="input-prenom" placeholder="Ex : Marie" autocomplete="off">
+      <label>Ta classe</label>
+      <input type="text" id="input-classe" placeholder="Ex : CAP OL 2A" autocomplete="off">
+      <button class="btn-primary" onclick="startGame()">Commencer l'enquête →</button>
+    </div>
+  </div>
+
+  <!-- JEU -->
+  <div id="screen-game" style="display:none">
+    <div class="progress-bar" id="progress-bar"></div>
+    <div id="enigme-container"></div>
+  </div>
+
+  <!-- VICTOIRE -->
+  <div id="screen-victory">
+    <div style="font-size:52px;margin-bottom:8px">🔓</div>
+    <div class="victory-title">COFFRE OUVERT !</div>
+    <div class="victory-sub" id="victory-sub"></div>
+    <div id="score-final-badge" class="score-badge"></div>
+    <div class="coffre-grid" id="coffre-grid"></div>
+    <div class="final-code">
+      <div class="fc-label">CODE FINAL DU COFFRE</div>
+      <div class="fc-val" id="final-code-display"></div>
+    </div>
+    <div class="infractions">
+      <h4>📋 Bilan — Les infractions de JUREX</h4>
+      <div class="infraction-item"><span class="infraction-num">①</span><span>Non-déclaration de l'AT de Marc à la CPAM sous 48h → Infraction au Code de la Sécurité sociale</span></div>
+      <div class="infraction-item"><span class="infraction-num">②</span><span>Non-remise de la feuille AT → Privation des droits du salarié</span></div>
+      <div class="infraction-item"><span class="infraction-num">③</span><span>Refus de garantie légale de conformité à Sophie DURAND → Pratique commerciale trompeuse</span></div>
+    </div>
+    <button class="btn-restart" onclick="restartGame()">↺ Rejouer</button>
+  </div>
+
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// 📚  DONNÉES — ÉNIGMES AVEC QCM + CORRIGÉS INTÉGRÉS
+// ══════════════════════════════════════════════════════
+const ENIGMES = [
+  {
+    id: 1, color: "#1ABC9C",
+    titre: "Énigme 1 — Le contrat de Marc",
+    theme: "Contrat de travail",
+    code: "4",
+    codeHint: "4 = nombre de mois maximum de période d'essai pour un ouvrier en CDI",
+    doc: {
+      titre: "📄 Document intercepté — Contrat de Marc LEBLOND",
+      lignes: [
+        { lbl:"Employeur :", val:"JUREX LOGISTICS" },
+        { lbl:"Salarié :", val:"Marc LEBLOND" },
+        { lbl:"Type de contrat :", val:"CDI" },
+        { lbl:"Date d'embauche :", val:"01/09/2022" },
+        { lbl:"Période d'essai :", val:"4 mois" },
+        { lbl:"Salaire :", val:"1 750 € brut / mois" },
+        { lbl:"Durée hebdomadaire :", val:"35h" },
+        { lbl:"Poste :", val:"Opérateur logistique" },
+      ]
+    },
+    hint: "💡 CDI = Contrat à Durée Indéterminée (pas de date de fin). Les 3 éléments essentiels du contrat : prestation de travail, rémunération, lien de subordination. Période d'essai ouvrier CDI = 2 mois renouvelable 1 fois = 4 mois max.",
+    questions: [
+      {
+        q: "Le contrat de Marc est-il un CDI ou un CDD ?",
+        opts: ["Un CDD, car il a une période d'essai", "Un CDI, car il n'a pas de date de fin prévue", "Un CDD, car il peut être rompu", "Un contrat d'apprentissage"],
+        correct: 1,
+        expl: "C'est un CDI — Contrat à Durée Indéterminée. Il n'a pas de date de fin. La période d'essai existe aussi dans le CDI, ça ne change pas le type de contrat."
+      },
+      {
+        q: "Parmi les éléments suivants, lequel N'est PAS un élément essentiel du contrat de travail ?",
+        opts: ["La prestation de travail", "La rémunération", "La nationalité du salarié", "Le lien de subordination"],
+        correct: 2,
+        expl: "Les 3 éléments essentiels sont : ① prestation de travail, ② rémunération (1 750€), ③ lien de subordination (Marc obéit aux directives de l'employeur). La nationalité n'a rien à voir."
+      },
+      {
+        q: "La période d'essai de 4 mois dans le contrat de Marc est-elle légale ?",
+        opts: ["Non, elle est trop longue", "Oui, c'est le maximum légal pour un ouvrier en CDI", "Oui, mais elle aurait dû être de 3 mois", "Non, il n'y a pas de période d'essai en CDI"],
+        correct: 1,
+        expl: "OUI, c'est légal ! Pour un ouvrier en CDI : 2 mois renouvelables 1 fois = 4 mois maximum. C'est exactement ce qui est dans le contrat de Marc."
+      },
+      {
+        q: "L'employeur impose à Marc de travailler 40h/semaine. Est-ce légal sans majoration ?",
+        opts: ["Oui, l'employeur peut fixer les horaires librement", "Non, la durée légale est 35h — les 5h supplémentaires doivent être majorées", "Oui si Marc a signé un avenant", "Non, Marc ne peut jamais travailler plus de 35h"],
+        correct: 1,
+        expl: "NON, c'est illégal sans majoration. La durée légale est 35h/semaine. Les heures au-delà sont des heures supplémentaires majorées : +25% pour les 8 premières, +50% ensuite."
+      },
+    ]
+  },
+  {
+    id: 2, color: "#3498DB",
+    titre: "Énigme 2 — L'accident de Marc",
+    theme: "Protection sociale / Santé au travail",
+    code: "48",
+    codeHint: "48 = délai légal (en heures) pour déclarer un AT à la CPAM",
+    doc: {
+      titre: "📋 Rapport d'incident — 14/03/2025",
+      lignes: [
+        { lbl:"Date :", val:"14/03/2025, 09h30" },
+        { lbl:"Lieu :", val:"Entrepôt JUREX, allée C" },
+        { lbl:"Moment :", val:"Pendant les heures de travail" },
+        { lbl:"Faits :", val:"Marc glisse sur sol mouillé → fracture poignet" },
+        { lbl:"Arrêt prescrit :", val:"3 semaines" },
+        { lbl:"Déclaration CPAM :", val:"NON — l'employeur n'a pas déclaré", rouge:true },
+        { lbl:"Feuille AT remise :", val:"NON — Marc n'a rien reçu", rouge:true },
+      ]
+    },
+    hint: "💡 Accident du travail = pendant le temps de travail + sur le lieu de travail + à l'occasion du travail. Délai déclaration AT : 48h (hors dimanches/fériés). En cas d'AT : indemnités journalières dès le 1er jour, sans délai de carence.",
+    questions: [
+      {
+        q: "L'accident de Marc est-il un accident du travail (AT) ?",
+        opts: ["Non, c'est un accident de trajet", "Non, c'est juste une maladie", "Oui, il survient pendant le travail, sur le lieu de travail, à l'occasion du travail", "Oui, mais seulement si l'employeur le reconnaît"],
+        correct: 2,
+        expl: "OUI, c'est bien un AT. Les 3 critères sont réunis : ① pendant les heures de travail (09h30), ② sur le lieu de travail (entrepôt JUREX), ③ à l'occasion du travail (manutention). L'employeur n'a pas le choix de le reconnaître ou non."
+      },
+      {
+        q: "Dans quel délai l'employeur devait déclarer l'AT à la CPAM ?",
+        opts: ["24 heures", "48 heures (hors dimanches et jours fériés)", "1 semaine", "1 mois"],
+        correct: 1,
+        expl: "48 heures (hors dimanches et jours fériés) — c'est l'obligation légale. JUREX ne l'a pas fait, c'est une infraction grave qui prive Marc de ses droits."
+      },
+      {
+        q: "Quelles sont les 2 fautes commises par l'employeur ?",
+        opts: ["Il a mal formé Marc et refusé de payer son salaire", "Il n'a pas déclaré l'AT à la CPAM et n'a pas remis la feuille AT à Marc", "Il a renvoyé Marc et refusé de payer les soins", "Il a déclaré l'AT trop tard et mal rédigé le rapport"],
+        correct: 1,
+        expl: "Les 2 fautes : ① Non-déclaration à la CPAM sous 48h ② Non-remise de la feuille d'accident du travail à Marc. Sans cette feuille, Marc ne peut pas être pris en charge à 100% par la Sécurité sociale."
+      },
+      {
+        q: "Pendant ses 3 semaines d'arrêt, Marc reçoit des indemnités journalières (IJ). À partir de quel jour ?",
+        opts: ["À partir du 4e jour (délai de carence de 3 jours)", "À partir du 8e jour", "Dès le 1er jour, sans délai de carence", "Seulement si l'employeur accepte"],
+        correct: 2,
+        expl: "En cas d'AT, les IJ sont versées dès le 1er jour — SANS délai de carence ! C'est un avantage important par rapport à la maladie ordinaire (qui a 3 jours de carence). Marc a donc droit à 21 jours d'IJ."
+      },
+    ]
+  },
+  {
+    id: 3, color: "#9B59B6",
+    titre: "Énigme 3 — La commande suspecte",
+    theme: "Droits du consommateur",
+    code: "2",
+    codeHint: "2 = durée (en années) de la garantie légale de conformité",
+    doc: {
+      titre: "📧 Email intercepté — 10/03/2025",
+      lignes: [
+        { lbl:"De :", val:"sophie.durand@mail.fr" },
+        { lbl:"À :", val:"service-client@jurexshop.fr" },
+        { lbl:"Commande :", val:"#4471 — Tablette 299€" },
+        { lbl:"Date commande :", val:"05/03/2025 (achat en ligne)" },
+        { lbl:"Date réception :", val:"08/03/2025" },
+        { lbl:"Problème :", val:"Tablette ne fonctionne pas depuis livraison" },
+        { lbl:"Réponse vendeur :", val:"Garantie refusée car \"colis ouvert\"", rouge:true },
+        { lbl:"Email rédigé le :", val:"10/03/2025" },
+      ]
+    },
+    hint: "💡 Garantie légale de conformité = 2 ans (Art. L217-4 Code conso). Droit de rétractation = 14 jours calendaires à compter de la réception du bien. DGCCRF = organisme qui protège les consommateurs.",
+    questions: [
+      {
+        q: "Quelle garantie légale Sophie peut-elle invoquer ?",
+        opts: ["La garantie commerciale (optionnelle, fournie par le vendeur)", "La garantie légale de conformité — le produit ne correspond pas au contrat", "La garantie des vices apparents", "Aucune garantie car le colis est ouvert"],
+        correct: 1,
+        expl: "La garantie légale de CONFORMITÉ (Art. L217-4 Code de la consommation). La tablette ne fonctionne pas à la réception = défaut de conformité. Cette garantie dure 2 ANS et s'applique même si le colis est ouvert."
+      },
+      {
+        q: "L'argument du vendeur (refus car colis ouvert) est-il légalement valable ?",
+        opts: ["Oui, si le colis est ouvert la garantie ne s'applique plus", "Oui, c'est dans les conditions générales de vente", "Non, la garantie légale de conformité s'applique même si le colis est ouvert", "Cela dépend du type de produit"],
+        correct: 2,
+        expl: "NON, c'est totalement illégal ! La garantie légale de conformité ne peut pas être supprimée par une clause du vendeur. Le fait d'ouvrir le colis n'annule pas la garantie. C'est une pratique commerciale trompeuse."
+      },
+      {
+        q: "Sophie peut-elle exercer son droit de rétractation le 10/03 ? (Elle a reçu sa commande le 08/03)",
+        opts: ["Non, le délai de 14 jours est dépassé", "Oui, elle est dans le délai — 2 jours se sont écoulés sur 14", "Non, le droit de rétractation ne s'applique pas aux tablettes", "Oui, mais seulement si le produit est défectueux"],
+        correct: 1,
+        expl: "OUI ! Calcul : réception le 08/03, email le 10/03 = 2 jours écoulés sur 14. Elle est largement dans le délai. Le droit de rétractation = 14 jours calendaires pour tout achat à distance (internet, téléphone, catalogue)."
+      },
+      {
+        q: "Vers quel organisme Sophie peut-elle se tourner pour signaler cette pratique illégale ?",
+        opts: ["La CAF (Caisse d'Allocations Familiales)", "L'URSSAF", "La DGCCRF (Direction Générale de la Concurrence, de la Consommation et de la Répression des Fraudes)", "Le Conseil des Prud'hommes"],
+        correct: 2,
+        expl: "La DGCCRF surveille les pratiques commerciales déloyales et protège les consommateurs. Sophie peut aussi saisir un médiateur de la consommation (gratuit et obligatoire) avant d'aller en justice."
+      },
+    ]
+  },
+  {
+    id: 4, color: "#E67E22",
+    titre: "Énigme 4 — Le profil de JUREX",
+    theme: "Environnement économique",
+    code: "249",
+    codeHint: "249 = nombre maximum de salariés pour être classé PME",
+    doc: {
+      titre: "🏢 Fiche entreprise — JUREX LOGISTICS SAS",
+      lignes: [
+        { lbl:"Activité :", val:"Transport & distribution de colis" },
+        { lbl:"Effectif :", val:"187 salariés" },
+        { lbl:"Chiffre d'affaires :", val:"22,4 millions €" },
+        { lbl:"Siège :", val:"Lyon (69)" },
+        { lbl:"Concurrents :", val:"DHL, Chronopost, GLS" },
+        { lbl:"Menace :", val:"Hausse carburant + normes CO2" },
+        { lbl:"Opportunité :", val:"Boom e-commerce, livraison express" },
+      ]
+    },
+    hint: "💡 Secteur tertiaire = services (dont logistique). PME = moins de 250 salariés ET CA < 50M€. PESTEL : Politique, Économique, Sociologique, Technologique, Écologique, Légal.",
+    questions: [
+      {
+        q: "JUREX appartient à quel secteur d'activité ?",
+        opts: ["Secteur primaire (agriculture, pêche)", "Secteur secondaire (industrie, fabrication)", "Secteur tertiaire (services)", "Secteur quaternaire (recherche)"],
+        correct: 2,
+        expl: "Secteur TERTIAIRE — le transport et la distribution de colis sont des services, pas de la fabrication. La logistique appartient toujours au secteur tertiaire."
+      },
+      {
+        q: "Quelle est la taille de JUREX selon les critères légaux français ?",
+        opts: ["TPE (Très Petite Entreprise) — moins de 10 salariés", "PME (Petite ou Moyenne Entreprise) — moins de 250 salariés et CA < 50M€", "ETI (Entreprise de Taille Intermédiaire) — jusqu'à 4 999 salariés", "Grande entreprise — plus de 5 000 salariés"],
+        correct: 1,
+        expl: "PME ! JUREX a 187 salariés (< 250) et un CA de 22,4M€ (< 50M€). Les deux critères de la PME sont remplis. Une TPE aurait moins de 10 salariés."
+      },
+      {
+        q: "La hausse du prix du carburant est un facteur de quel type dans l'analyse PESTEL ?",
+        opts: ["P — Politique", "E — Économique", "S — Sociologique", "T — Technologique"],
+        correct: 1,
+        expl: "C'est un facteur Économique (E de PESTEL) — la hausse des prix des matières premières (carburant) affecte directement les coûts de l'entreprise. Les normes CO2 seraient plutôt Écologique (E) ou Légal (L)."
+      },
+      {
+        q: "Le boom de l'e-commerce représente quel type de facteur pour JUREX ?",
+        opts: ["Une menace économique", "Une opportunité — facteur Sociologique/Technologique (S et T de PESTEL)", "Un risque légal", "Un facteur politique"],
+        correct: 1,
+        expl: "C'est une opportunité ! L'e-commerce = facteur Sociologique (S — évolution des comportements d'achat) et Technologique (T — nouvelles plateformes). Pour JUREX, plus de livraisons à distance = plus de clients potentiels."
+      },
+    ]
+  },
+  {
+    id: 5, color: "#C0392B",
+    titre: "Énigme finale — Synthèse",
+    theme: "Les 4 thèmes réunis",
+    code: "14",
+    codeHint: "14 = délai de rétractation légal (en jours) pour un achat en ligne",
+    doc: {
+      titre: "📝 Mémo final — Agent DUVAL",
+      lignes: [
+        { lbl:"Code 1 trouvé :", val:"4 — essai max ouvrier CDI" },
+        { lbl:"Code 2 trouvé :", val:"48 — délai déclaration AT (heures)" },
+        { lbl:"Code 3 trouvé :", val:"2 — garantie conformité (années)" },
+        { lbl:"Code 4 trouvé :", val:"249 — seuil max salariés PME" },
+        { lbl:"Code 5 à trouver :", val:"??? — Dernière question !", rouge:true },
+      ]
+    },
+    hint: "💡 Pour le code 5 : pensez à Sophie et son droit de rétractation pour sa commande en ligne…",
+    questions: [
+      {
+        q: "JUREX n'a pas déclaré l'AT de Marc à la CPAM. Quelle loi a-t-il violée ?",
+        opts: ["Le Code de la consommation", "Le Code de la Sécurité sociale (obligation de déclaration AT sous 48h)", "Le Code du commerce", "Le Code de l'environnement"],
+        correct: 1,
+        expl: "Le Code de la Sécurité sociale impose à l'employeur de déclarer tout accident du travail à la CPAM dans les 48h. JUREX ne l'a pas fait = infraction grave, Marc est privé de ses droits."
+      },
+      {
+        q: "En refusant la garantie à Sophie, JUREX a commis quelle infraction ?",
+        opts: ["Un vol", "Une pratique commerciale trompeuse (Code de la consommation)", "Une fraude fiscale", "Un abus de position dominante"],
+        correct: 1,
+        expl: "Pratique commerciale trompeuse (Art. L121-1 Code de la consommation) — refuser une garantie légale obligatoire en invoquant un faux motif (colis ouvert) est une pratique illégale. La DGCCRF peut sanctionner JUREX."
+      },
+      {
+        q: "Quel est le secteur d'activité de JUREX et sa taille ?",
+        opts: ["Secteur secondaire, grande entreprise", "Secteur tertiaire, PME (187 sal., CA 22,4M€)", "Secteur primaire, ETI", "Secteur tertiaire, TPE"],
+        correct: 1,
+        expl: "Secteur TERTIAIRE (services/logistique) + PME (187 salariés < 250, CA 22,4M€ < 50M€). Ces deux éléments caractérisent JUREX selon le référentiel CAP OL."
+      },
+      {
+        q: "QUESTION FINALE — Quel est le délai légal de rétractation pour un achat à distance (internet) ?",
+        opts: ["7 jours calendaires", "10 jours ouvrables", "14 jours calendaires", "30 jours calendaires"],
+        correct: 2,
+        expl: "14 jours calendaires ! C'est la Loi Hamon (2014) et la directive européenne. Ce délai s'applique à tout achat à distance (internet, téléphone, catalogue). C'est votre CODE FINAL : 14 !"
+      },
+    ]
+  }
+];
+
+// ══════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════
+let state = { prenom:"", classe:"", enigmeIndex:0, scores:[] };
+
+// ══════════════════════════════════════════════════════
+// DÉMARRAGE
+// ══════════════════════════════════════════════════════
+function startGame() {
+  const prenom = document.getElementById("input-prenom").value.trim();
+  if (!prenom) { document.getElementById("input-prenom").focus(); return; }
+  state.prenom = prenom;
+  state.classe = document.getElementById("input-classe").value.trim();
+  state.enigmeIndex = 0;
+  state.scores = [];
+  document.getElementById("screen-intro").style.display = "none";
+  document.getElementById("screen-game").style.display = "block";
+  buildProgressBar();
+  renderEnigme(0);
+}
+
+// ══════════════════════════════════════════════════════
+// PROGRESS BAR
+// ══════════════════════════════════════════════════════
+function buildProgressBar() {
+  document.getElementById("progress-bar").innerHTML =
+    ENIGMES.map((_,i) => `<div class="prog-step ${i===0?'active':''}" id="prog-${i}"></div>`).join("");
+}
+function updateProgressBar(idx) {
+  ENIGMES.forEach((_,i) => {
+    const el = document.getElementById("prog-"+i);
+    if (!el) return;
+    el.className = "prog-step" + (i<idx?" done":i===idx?" active":"");
+  });
+}
+
+// ══════════════════════════════════════════════════════
+// RENDU ÉNIGME
+// ══════════════════════════════════════════════════════
+function renderEnigme(idx) {
+  const e = ENIGMES[idx];
+  updateProgressBar(idx);
+
+  const docRows = e.doc.lignes.map(l =>
+    `<div class="doc-row"><span class="lbl">${l.lbl}</span><span class="val${l.rouge?' rouge':''}">${l.val}</span></div>`
+  ).join("");
+
+  const qcmBlocks = e.questions.map((q, qi) =>
+    `<div class="qcm-block" id="qblock-${idx}-${qi}">
+      <div class="qcm-question">${q.q}</div>
+      <div class="qcm-options">
+        ${q.opts.map((opt, oi) =>
+          `<label class="qcm-opt" id="opt-${idx}-${qi}-${oi}">
+            <input type="radio" name="q${idx}-${qi}" value="${oi}"> ${opt}
+          </label>`
+        ).join("")}
+      </div>
+    </div>`
+  ).join("");
+
+  document.getElementById("enigme-container").innerHTML = `
+    <div style="border:1px solid #2a2f38;border-radius:var(--radius);overflow:hidden;margin-bottom:24px">
+      <div class="enigme-header" style="background:${e.color}20;border-bottom:1px solid ${e.color}40">
+        <div>
+          <div style="font-size:11px;letter-spacing:2px;color:${e.color};text-transform:uppercase;margin-bottom:2px">${e.theme}</div>
+          <h2>${e.titre}</h2>
+        </div>
+        <div style="font-size:14px;color:var(--grey)">
+          <span style="color:${e.color};font-weight:700;font-size:20px">${e.id}</span>/5
+        </div>
+      </div>
+      <div style="padding:16px 20px">
+        <div class="doc-card" style="border-left-color:${e.color}">
+          <div class="doc-title">${e.doc.titre}</div>
+          ${docRows}
+        </div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:16px 0 8px">
+          <div style="font-size:13px;font-weight:700;color:${e.color};letter-spacing:1px;text-transform:uppercase">❓ Questions à résoudre</div>
+          <button class="hint-btn" onclick="toggleHint(${idx})">💡 Indice</button>
+        </div>
+        <div class="hint-box" id="hint-${idx}">${e.hint}</div>
+        <div style="margin:12px 0">${qcmBlocks}</div>
+        <button class="btn-check" id="btn-check-${idx}" onclick="checkAnswers(${idx})" style="background:${e.color};color:#fff">
+          Vérifier mes réponses →
+        </button>
+        <div class="feedback-zone" id="feedback-${idx}">
+          <div class="feedback-header">
+            <span class="feedback-icon" id="fb-icon-${idx}">🔍</span>
+            <h3 id="fb-title-${idx}">Correction</h3>
+          </div>
+          <div id="fb-score-${idx}" class="fb-score"></div>
+          <div class="feedback-body" id="fb-body-${idx}"></div>
+        </div>
+        <div class="code-reveal" id="code-${idx}" style="border-color:${e.color}">
+          <div class="code-label">🔑 Code débloqué</div>
+          <div class="code-value" style="color:${e.color}">${e.code}</div>
+          <div class="code-hint">${e.codeHint}</div>
+        </div>
+        <button class="btn-next" id="btn-next-${idx}" onclick="nextEnigme(${idx})" style="background:${e.color}">
+          ${idx < ENIGMES.length-1 ? `Énigme ${idx+2} →` : '🔓 Ouvrir le coffre !'}
+        </button>
+      </div>
+    </div>`;
+
+  document.getElementById("enigme-container").scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+// ══════════════════════════════════════════════════════
+// INDICE
+// ══════════════════════════════════════════════════════
+function toggleHint(idx) {
+  const box = document.getElementById("hint-"+idx);
+  box.style.display = box.style.display==="block" ? "none" : "block";
+}
+
+// ══════════════════════════════════════════════════════
+// CORRECTION LOCALE
+// ══════════════════════════════════════════════════════
+function checkAnswers(idx) {
+  const e = ENIGMES[idx];
+  let score = 0;
+  let allAnswered = true;
+  const results = [];
+
+  e.questions.forEach((q, qi) => {
+    const selected = document.querySelector(`input[name="q${idx}-${qi}"]:checked`);
+    if (!selected) { allAnswered = false; results.push(null); return; }
+    const chosen = parseInt(selected.value);
+    const isOk = chosen === q.correct;
+    if (isOk) score++;
+    results.push({ chosen, isOk });
+
+    // Coloriser les options
+    q.opts.forEach((_, oi) => {
+      const optEl = document.getElementById(`opt-${idx}-${qi}-${oi}`);
+      if (!optEl) return;
+      const radio = optEl.querySelector("input");
+      radio.disabled = true;
+      if (oi === q.correct) optEl.classList.add("reveal-correct");
+      else if (oi === chosen && !isOk) optEl.classList.add("wrong");
+    });
+  });
+
+  if (!allAnswered) {
+    alert("Réponds à toutes les questions avant de valider !");
+    return;
+  }
+
+  // Feedback
+  const pct = Math.round(score / e.questions.length * 100);
+  const emoji = score === e.questions.length ? "🏆" : score >= e.questions.length/2 ? "👍" : "📚";
+
+  document.getElementById(`fb-icon-${idx}`).textContent = emoji;
+  document.getElementById(`fb-title-${idx}`).textContent = `Correction — Énigme ${e.id}`;
+  document.getElementById(`fb-score-${idx}`).innerHTML =
+    `${emoji} Score : <span>${score}/${e.questions.length}</span> (${pct}%)`;
+
+  const bodyEl = document.getElementById(`fb-body-${idx}`);
+  bodyEl.innerHTML = results.map((r, qi) => {
+    if (!r) return "";
+    const cls = r.isOk ? "correct" : "wrong";
+    const prefix = r.isOk ? "✓ Bonne réponse" : "✗ Erreur";
+    return `<div class="fb-line ${cls}"><strong>${prefix} (Q${qi+1})</strong> — ${e.questions[qi].expl}</div>`;
+  }).join("");
+
+  const fz = document.getElementById(`feedback-${idx}`);
+  fz.className = "feedback-zone visible";
+
+  // Code toujours révélé (encourageant)
+  document.getElementById(`code-${idx}`).className = "code-reveal visible";
+  document.getElementById(`btn-next-${idx}`).className = "btn-next visible";
+
+  // Désactiver le bouton
+  const btn = document.getElementById(`btn-check-${idx}`);
+  btn.disabled = true;
+  btn.textContent = `✓ Corrigé — ${score}/${e.questions.length}`;
+  btn.style.background = score === e.questions.length ? "var(--success)" : "#555";
+
+  state.scores[idx] = score;
+  fz.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+// ══════════════════════════════════════════════════════
+// SUIVANT / VICTOIRE
+// ══════════════════════════════════════════════════════
+function nextEnigme(idx) {
+  if (idx < ENIGMES.length-1) {
+    state.enigmeIndex = idx+1;
+    renderEnigme(state.enigmeIndex);
+    window.scrollTo({top:0,behavior:"smooth"});
+  } else {
+    showVictory();
+  }
+}
+
+function showVictory() {
+  document.getElementById("screen-game").style.display = "none";
+  const v = document.getElementById("screen-victory");
+  v.style.display = "block";
+
+  const totalScore = state.scores.reduce((a,b)=>a+(b||0),0);
+  const totalMax = ENIGMES.reduce((a,e)=>a+e.questions.length,0);
+  const pct = Math.round(totalScore/totalMax*100);
+
+  document.getElementById("victory-sub").textContent =
+    `Bravo ${state.prenom} ! Tu as résolu les 5 énigmes et déverrouillé le coffre de JUREX.`;
+
+  document.getElementById("score-final-badge").textContent =
+    `Score total : ${totalScore}/${totalMax} (${pct}%)`;
+
+  const colors = ["#1ABC9C","#3498DB","#9B59B6","#E67E22","#C0392B"];
+  document.getElementById("coffre-grid").innerHTML = ENIGMES.map((e,i) =>
+    `<div class="coffre-cell" style="border-top:3px solid ${colors[i]}">
+       <div class="c-label">Code ${i+1}</div>
+       <div class="c-val" style="color:${colors[i]}">${e.code}</div>
+       <div style="font-size:10px;color:var(--grey);margin-top:4px">${e.questions.length}Q — ${state.scores[i]||0}/${e.questions.length}</div>
+     </div>`
+  ).join("");
+
+  document.getElementById("final-code-display").textContent =
+    ENIGMES.map(e=>e.code).join(" — ");
+
+  v.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+function restartGame() {
+  state = { prenom:"", classe:"", enigmeIndex:0, scores:[] };
+  document.getElementById("screen-victory").style.display = "none";
+  document.getElementById("screen-intro").style.display = "block";
+  document.getElementById("input-prenom").value = "";
+  document.getElementById("input-classe").value = "";
+  window.scrollTo({top:0});
+}
+</script>
+</body>
+</html>
